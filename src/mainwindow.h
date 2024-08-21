@@ -22,11 +22,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+//#include <QMainWindow>
+#include <DMainWindow>
+
+DWIDGET_USE_NAMESPACE
 
 class MainWidget;
 
-class MainWindow : public QMainWindow
+class MainWindow : public DMainWindow
 {
     Q_OBJECT
 

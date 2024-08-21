@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(durian-ocr)
+project(gxde-ocr)
 
 #for Qt
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -20,6 +20,10 @@ if(DOTEST)
 endif()
 
 find_package(Qt5 REQUIRED ${QtModule})
+# 引入 dtk2
+find_package(DtkWidget REQUIRED)
+find_package(DtkCore REQUIRED)
+
 
 include_directories(
     ${Qt5Core_INCLUDE_DIRS}
@@ -145,7 +149,7 @@ if(DOTEST)
     qt5_use_modules(${PROJECT_NAME_TEST} ${QtModule})
 endif()
 
-target_link_libraries(${PROJECT_NAME} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets pthread dl -fopenmp)
+target_link_libraries(${PROJECT_NAME} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets ${DtkWidget_LIBRARIES} ${DtkCore_LIBRARIES} pthread dl -fopenmp)
 
 if(DOTEST)
     target_link_libraries(${PROJECT_NAME_TEST} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets ${dtk_lib_LIBRARIES} pthread dl -fopenmp)
@@ -153,6 +157,7 @@ endif()
 
 # install
 set(PREFIX /usr)
+set(BinDir ${PREFIX}/bin)
 set(TranslationDir ${PREFIX}/share/${PROJECT_NAME}/translations)
 set(DesktopDir ${PREFIX}/share/applications/)
 set(AppIconDir ${PREFIX}/share/icons/hicolor/scalable/apps)
@@ -167,7 +172,11 @@ install(TARGETS ${PROJECT_NAME}
         INCLUDES DESTINATION allHeaders)
 
 install(FILES ${LangSrcs} DESTINATION ${TranslationDir})
-install(FILES ../durian-ocr.desktop DESTINATION ${DesktopDir})
-install(FILES ../assets/durian-ocr.svg DESTINATION ${AppIconDir})
-install(FILES ../com.durian.Ocr.service DESTINATION ${DBusServiceDir})
+install(FILES ../deepin-ocr DESTINATION ${BinDir})
+install(FILES ../durian-ocr DESTINATION ${BinDir})
+install(FILES ../gxde-ocr.desktop DESTINATION ${DesktopDir})
+#install(FILES ../assets/durian-ocr.svg DESTINATION ${AppIconDir})
+install(FILES ../assets/gxde-ocr.svg DESTINATION ${AppIconDir})
+install(FILES ../com.deepin.Ocr.service DESTINATION ${DBusServiceDir})
+install(FILES ../com.gxde.Ocr.service DESTINATION ${DBusServiceDir})
 install(DIRECTORY ../assets/model DESTINATION ${ModelDir})

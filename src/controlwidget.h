@@ -1,10 +1,14 @@
 #ifndef CONTROLWIDGET_H
 #define CONTROLWIDGET_H
 
-#include <QWidget>
+#include <DMainWindow>
 #include <QPushButton>
+#include <QLabel>
 #include <QVBoxLayout>
-class ControlWidget : public QWidget
+
+DWIDGET_USE_NAMESPACE
+
+class ControlWidget : public DMainWindow
 {
     Q_OBJECT
 public:
@@ -17,6 +21,7 @@ public slots:
 
 private :
     QPushButton *m_openImageBtn = nullptr;
+    QLabel *m_iconLabel = nullptr;
 };
 
 #endif // CONTROLWIDGET_H

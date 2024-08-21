@@ -21,22 +21,28 @@
 #include <QFont>
 
 //#include <DGuiApplicationHelper>
-#include <QMainWindow>
-//#include <DTitlebar>
+#include <DMainWindow>
+#include <DTitlebar>
 #include <QMessageBox>
 #include <QToolButton>
+#include "dthememanager.h"
 //#include <DFloatingWidget>
 //#include <DAnchors>
 //#include <DFontSizeManager>
 //#include <DHiDPIHelper>
 
+DWIDGET_USE_NAMESPACE
+
 #define App (static_cast<QApplication*>(QCoreApplication::instance()))
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent)
 {
+    // 加载 Setting
+    m_settings = new DSettings(DSettings::instance());
+
     setupUi(this);
     ColorType themeType = LightType;
-    setIcons(themeType);
+    setIcons(getTheme());
     initScaleLabel();
     setupConnect();
 }
@@ -97,12 +103,40 @@ MainWidget::~MainWidget()
 
 }
 
+void MainWidget::switchTheme()
+{
+    QString theme = DThemeManager::instance()->theme();
+
+    if (theme == "light") {
+        m_settings->setOption("theme", "dark");
+    } else {
+        m_settings->setOption("theme", "light");
+    }
+
+    theme = m_settings->getOption("theme").toString();
+    DThemeManager::instance()->setTheme(theme);
+    setIcons(getTheme());
+    m_themeAction->setChecked(theme == "dark");
+}
+
 void MainWidget::setupUi(QWidget *Widget)
 {
-    QMainWindow *mainWindow = static_cast<QMainWindow *>(this->parent());
+    DMainWindow *mainWindow = static_cast<DMainWindow *>(this->parent());
 //    if (mainWindow) {
 //        mainWindow->titlebar()->setMenuVisible(false);
 //    }
+    // 设置标题
+    mainWindow->titlebar()->setTitle(tr("GXDE OCR"));
+    mainWindow->titlebar()->setIcon(QIcon(":/assets/gxde-ocr.svg"));
+
+    // 设置主题选项
+    m_tbMenu = new QMenu();
+    m_themeAction = new QAction(tr("Dark theme"), this);
+    m_themeAction->setCheckable(true);
+    m_tbMenu->addAction(m_themeAction);
+    mainWindow->titlebar()->setMenu(m_tbMenu);
+    connect(m_themeAction, &QAction::triggered, this, &MainWidget::switchTheme);
+
     m_mainGridLayout = new QGridLayout(Widget);
     m_mainGridLayout->setSpacing(0);
     m_mainGridLayout->setContentsMargins(0, 0, 0, 6);
@@ -317,6 +351,11 @@ void MainWidget::createLoadingUi()
     }
 }
 
+ColorType MainWidget::getTheme() const
+{
+    return DThemeManager::instance()->theme() == "light" ? LightType : DarkType;
+}
+
 void MainWidget::deleteLoadingUi()
 {
     m_isLoading = false;
@@ -330,7 +369,7 @@ void MainWidget::deleteLoadingUi()
     }
     m_imageview->setForegroundBrush(QColor(0, 0, 0, 0)); //设置场景的前景色，类似于遮罩
     ColorType themeType = LightType;
-    setIcons(themeType);
+    setIcons(getTheme());
 }
 
 void MainWidget::loadingUi()
@@ -395,7 +434,7 @@ void MainWidget::openImage(const QImage &img, const QString &name)
     createLoadingUi();
     //新打开的窗口需要设置属性
     ColorType themeType = LightType;
-    setIcons(themeType);
+    setIcons(getTheme());
     if (m_imageview) {
         m_imageview->openFilterImage(img);
         QTimer::singleShot(100, [ = ] {
@@ -637,7 +676,7 @@ void MainWidget::setIcons(ColorType themeType)
         }
 
         App->setWindowIcon(QIcon(":/assets/appicon_dark.svg"));
-        QMainWindow *mainWindow = static_cast<QMainWindow *>(this->parent());
+        DMainWindow *mainWindow = static_cast<DMainWindow *>(this->parent());
 //        if (mainWindow) {
 //            mainWindow->titlebar()->setIcon(QIcon(":/assets/appicon_dark.svg"));
 //        }
@@ -703,7 +742,7 @@ void MainWidget::setIcons(ColorType themeType)
         }
 
         App->setWindowIcon(QIcon(":/assets/appicon_light.svg"));
-        QMainWindow *mainWindow = static_cast<QMainWindow *>(this->parent());
+        DMainWindow *mainWindow = static_cast<DMainWindow *>(this->parent());
 //        if (mainWindow) {
 //            mainWindow->titlebar()->setIcon(QIcon(":/assets/appicon_light.svg"));
 //        }

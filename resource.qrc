@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/tip_dark.svg</file>
+        <file>assets/gxde-ocr.svg</file>
         <file>assets/tip_light.svg</file>
         <file>assets/download_light.svg</file>
         <file>assets/icon_toast_sucess_new.svg</file>

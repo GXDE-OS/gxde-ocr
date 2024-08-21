@@ -19,6 +19,8 @@
 #include "textloadwidget.h"
 #include "paddleocr-ncnn/paddleocr.h"
 
+#include "dsettings.h"
+
 class Frame;
 class QThread;
 class QGridLayout;
@@ -59,6 +61,8 @@ public:
 
     //缩放显示label
     void initScaleLabel();
+
+    ColorType getTheme() const;
 protected:
     void resizeEvent(QResizeEvent *event);
     void paintEvent(QPaintEvent *event);
@@ -110,7 +114,13 @@ private:
     QShortcut *m_scAddView = nullptr;
     QShortcut *m_scReduceView = nullptr;
 
+    QMenu *m_tbMenu;
+    QAction *m_themeAction;
+
     int m_isEndThread = 1;
+
+    void switchTheme();
+    DSettings *m_settings;
 signals:
     void sigResult(const QString &);
 

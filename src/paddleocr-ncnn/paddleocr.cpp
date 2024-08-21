@@ -65,7 +65,7 @@ PaddleOCRApp::PaddleOCRApp()
 #ifdef IN_TEST
     QString rootPath(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/ocr_test/testResource/");
 #else
-    QString rootPath("/usr/share/durian-ocr/model/"); //模型存放位置
+    QString rootPath("/usr/share/gxde-ocr/model/"); //模型存放位置
 #endif
     QString paramPath;  //模型结构文件路径
     QString binPath;    //权重文件路径
@@ -155,7 +155,7 @@ void PaddleOCRApp::setLanguages(PaddleOCRApp::Languages data)
 #ifdef IN_TEST
     QString rootPath(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/ocr_test/testResource/");
 #else
-    QString rootPath("/usr/share/durian-ocr/model/"); //模型存放位置
+    QString rootPath("/usr/share/gxde-ocr/model/"); //模型存放位置
 #endif
     QString paramPath;  //模型结构文件路径
     QString binPath;    //权重文件路径

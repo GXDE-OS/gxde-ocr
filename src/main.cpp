@@ -21,21 +21,25 @@
 #include "ocrapplication.h"
 #include "service/ocrinterface.h"
 #include "service/dbusocr_adaptor.h"
+#include "service/dbusocr_adaptor_fixdeepin.h"
 
 #include <QWidget>
 //#include <QLog>
 //#include <DWindowManagerHelper>
 //#include <DWidgetUtil>
 //#include <DGuiApplicationHelper>
-#include <QApplication>
+//#include <QApplication>
+#include <DApplication>
 
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDesktopWidget>
 
-#include "controlwidget.h"
+//#include "controlwidget.h"
+#include <QFileDialog>
 
+DWIDGET_USE_NAMESPACE
 
 //判断是否是wayland
 bool CheckWayland()
@@ -49,6 +53,14 @@ bool CheckWayland()
     else {
         return false;
     }
+}
+
+QString GetImagePath()
+{
+    return QFileDialog::getOpenFileName(NULL,
+                                        QObject::tr("Choose image"),
+                                        "",
+                                        QObject::tr("Image File (*.jpg; *.jpeg; *.png *.bmp);; All Files (*.*)"));
 }
 
 int main(int argc, char *argv[])
@@ -68,34 +80,42 @@ int main(int argc, char *argv[])
 //#else
 //    QScopedPointer<DApplication> app(DApplication::globalApplication(argc, argv));
 //#endif
-    QApplication app(argc, argv);
-    app.setOrganizationName("durian");
-    app.setApplicationName("durian-ocr");
-//    app.setProductName(QObject::tr("OCR Tool"));
+    DApplication::loadDXcbPlugin();
+    DApplication app(argc, argv);
+    app.setOrganizationName("GXDE");
+    app.setApplicationName("gxde-ocr");
+    app.setProductName(QObject::tr("GXDE OCR Tool"));
     app.setApplicationVersion("1.0");
+    app.setProductIcon(QIcon(":/assets/gxde-ocr.svg"));
+    app.setApplicationDescription(QObject::tr("GXDE OCR provides the base character recognition ability on GXDE.\nBased on Durian OCR"));
+    app.setApplicationAcknowledgementPage("https://gitee.com/GXDE-OS/gxde-ocr");
 
 //    Dtk::Core::DLogManager::registerConsoleAppender();
 //    Dtk::Core::DLogManager::registerFileAppender();
 
     QCommandLineOption dbusOption(QStringList() << "u" << "dbus", "Start  from dbus.");
     QCommandLineParser cmdParser;
-    cmdParser.setApplicationDescription("durian-Ocr");
+    cmdParser.setApplicationDescription("gxde-ocr");
     cmdParser.addHelpOption();
     cmdParser.addVersionOption();
     cmdParser.addOption(dbusOption);
     cmdParser.process(app);
 
-//    app->loadTranslator();
+    app.loadTranslator();
 
 
     OcrApplication* instance = OcrApplication::instance();
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    if (dbus.registerService("com.durian.Ocr")) {
+    QDBusConnection dbusFixDeepin = QDBusConnection::sessionBus();  // 用于模拟 deepin OCR 的 dbus
+    if (dbus.registerService("com.gxde.Ocr")) {
         // 第一次启动
         // 注册Dbus服务和对象
-        dbus.registerObject("/com/durian/Ocr", instance);
+        dbus.registerObject("/com/gxde/Ocr", instance);
+        dbusFixDeepin.registerService("com.deepin.Ocr");
+        dbusFixDeepin.registerObject("/com/deepin/Ocr", instance);
         // 初始化适配器
         new DbusOcrAdaptor(instance);
+        new DbusOcrAdaptorFixDeepin(instance);
 
         if (cmdParser.isSet(dbusOption)) {
             // 第一调用已 --dbus参数启动
@@ -104,18 +124,23 @@ int main(int argc, char *argv[])
         }
 
         if(!instance->openFile(QString(argv[1]))){
-            ControlWidget* widget =new ControlWidget();
-            widget->resize(800,600);
-            widget->show();
-            widget->move(qApp->desktop()->screen()->rect().center() - widget->rect().center());
+            QString path = GetImagePath();
+            if (path != "" && path != NULL) {
+                OcrApplication::instance()->openFile(path);
+            }
         }
     } else {
         // 第二次运行此应用，
         // 调用DBus接口，处理交给第一次调用的进程
         // 本进程退退出
-        OcrInterface *pOcr = new OcrInterface("com.durian.Ocr", "/com/durian/Ocr", QDBusConnection::sessionBus(), instance);
+        OcrInterface *pOcr = new OcrInterface("com.gxde.Ocr", "/com/gxde/Ocr", QDBusConnection::sessionBus(), instance);
         qDebug() << __FUNCTION__ << __LINE__;
-        pOcr->openFile(QString(argv[1]));
+        if(!instance->openFile(QString(argv[1]))){
+            QString path = GetImagePath();
+            if (path != "" && path != NULL) {
+                pOcr->openFile(path);
+            }
+        }
         delete pOcr;
         return 0;
     }

@@ -29,7 +29,7 @@
 //#include <DTitlebar>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : DMainWindow(parent)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     if (!m_mainWidget) {

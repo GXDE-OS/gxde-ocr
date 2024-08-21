@@ -1,13 +1,16 @@
 Source: durian-ocr
 Section: utils
 Priority: optional
-Maintainer: Liuminghang
+Maintainer: Liuminghang, gfdgd xi <3025613752@qq.com>
 Build-Depends: debhelper (>= 11), cmake, qtbase5-dev, pkg-config,qttools5-dev-tools,qttools5-dev
 Standards-Version: 4.1.3
 Homepage: http://www.deepin.org/
 
-Package: durian-ocr
+Package: gxde-ocr
 Architecture: any
+Breaks: deepin-ocr, durian-ocr
+Replaces: deepin-ocr, durian-ocr
+Provides: deepin-ocr, durian-ocr
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Ocr for no dtk
- Ocr is a text recognition software.
+Description: GXDE Ocr for dtk2
+ GXDE Ocr is a text recognition software.

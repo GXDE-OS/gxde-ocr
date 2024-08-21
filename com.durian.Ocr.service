@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=com.durian.Ocr
-Exec=/usr/bin/durian-ocr --dbus

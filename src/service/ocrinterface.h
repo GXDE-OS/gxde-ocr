@@ -39,7 +39,7 @@ class OcrInterface: public QDBusAbstractInterface
 public:
     static inline const char *staticInterfaceName()
     {
-        return "com.durian.Ocr";
+        return "com.gxde.Ocr";
     }
 
 public:
@@ -104,7 +104,7 @@ Q_SIGNALS: // SIGNALS
 };
 
 namespace com {
-namespace durian {
+namespace gxde {
 typedef ::OcrInterface Ocr;
 }
 }

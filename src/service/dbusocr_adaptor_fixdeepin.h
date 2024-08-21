@@ -18,8 +18,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef DBUSOCR_ADAPTOR_H
-#define DBUSOCR_ADAPTOR_H
+#ifndef DBUSOCR_ADAPTOR_FIXDEEPIN_H
+#define DBUSOCR_ADAPTOR_FIXDEEPIN_H
 
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>
@@ -35,12 +35,12 @@ QT_END_NAMESPACE
 /*
  * @bref: dbusocr_adaptor 提供给外部程序调用的方法
 */
-class DbusOcrAdaptor: public QDBusAbstractAdaptor
+class DbusOcrAdaptorFixDeepin: public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.gxde.Ocr")
+    Q_CLASSINFO("D-Bus Interface", "com.deepin.Ocr")
     Q_CLASSINFO("D-Bus Introspection", ""
-                                       "  <interface name=\"com.gxde.Ocr\">\n"
+                                       "  <interface name=\"com.deepin.Ocr\">\n"
 
                                        "    <method name=\"openImage\">\n"
                                        "      <arg direction=\"in\" type=\"ay\" name=\"openImage\"/>\n"
@@ -58,8 +58,8 @@ class DbusOcrAdaptor: public QDBusAbstractAdaptor
 
                                        "  </interface>\n")
 public:
-    explicit DbusOcrAdaptor(QObject *parent);
-    virtual ~DbusOcrAdaptor();
+    explicit DbusOcrAdaptorFixDeepin(QObject *parent);
+    virtual ~DbusOcrAdaptorFixDeepin();
 
 public Q_SLOTS: // METHODS
     void openImage(QByteArray images);
@@ -70,4 +70,4 @@ public Q_SLOTS: // METHODS
 Q_SIGNALS: // SIGNALS
 };
 
-#endif // DBUSDRAW_ADAPTOR_H
+#endif // DBUSDRAW_ADAPTOR_FIXDEEPIN_H

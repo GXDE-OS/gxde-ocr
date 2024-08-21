@@ -1,6 +1,7 @@
-# deepin-ocr
-
-Deepin  ocr is a .
+# gxde-ocr
+ 
+GXDE OCR provides the base character recognition ability on GXDE.  
+Based on Durian OCR  
 
 ### Dependencies
 
@@ -30,13 +31,13 @@ _Package name may be different between distros, if dde-file-manager is available
 Assume you are using [Deepin](https://distrowatch.com/table.php?distribution=deepin) or other debian-based distro which got dde-file-manager delivered:
 
 ``` shell
-$ apt build-dep deepin-ocr
+$ apt build-dep gxde-ocr
 ```
 
 2. Build:
 
 ```
-$ cd deepin-album
+$ cd gxde-ocr
 $ mkdir Build
 $ cd Build
 $ cmake ..
@@ -49,11 +50,11 @@ $ make
 $ sudo make install
 ```
 
-The executable binary file could be found at `/usr/bin/deepin-ocr `
+The executable binary file could be found at `/usr/bin/gxde-ocr `
 
 ## Usage
 
-Execute `deepin-ocr`
+Execute `gxde-ocr`
 
 ## Documentations
 
@@ -76,4 +77,4 @@ We encourage you to report issues and contribute changes
 
 ## License
 
-deepin-ocr is licensed under [GPLv3](
+gxde-ocr is licensed under [GPLv3](

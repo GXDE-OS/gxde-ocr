@@ -189,8 +189,8 @@ Details::Details(const char *recParamPath, const char *recBinPath, const std::ve
     detNet->load_param_bin((QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/ocr_test/testResource/det.param.bin").toStdString().c_str());
     detNet->load_model((QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/ocr_test/testResource/det.bin").toStdString().c_str());
 #else
-    detNet->load_param_bin("/usr/share/durian-ocr/model/det.param.bin");
-    detNet->load_model("/usr/share/durian-ocr/model/det.bin");
+    detNet->load_param_bin("/usr/share/gxde-ocr/model/det.param.bin");
+    detNet->load_model("/usr/share/gxde-ocr/model/det.bin");
 #endif
 
     //初始化识别网络
