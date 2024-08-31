@@ -1,10 +1,8 @@
-durian-ocr (1.1.0) UNRELEASED; urgency=medium
+durian-ocr (1.1.1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
-  * 
-  * 
 
- -- gfdgd_xi <3025613752@qq.com>  Wed, 21 Aug 2024 18:17:12 +0800
+ -- gfdgd_xi <3025613752@qq.com>  Sun, 01 Sep 2024 07:07:44 +0800
 
 durian-ocr (1.0) unstable; urgency=medium
 

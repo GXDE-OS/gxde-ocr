@@ -31,6 +31,9 @@
 //#include <DFontSizeManager>
 //#include <DHiDPIHelper>
 
+#include <QFile>
+#include <QProcess>
+
 DWIDGET_USE_NAMESPACE
 
 #define App (static_cast<QApplication*>(QCoreApplication::instance()))
@@ -86,6 +89,10 @@ MainWidget::~MainWidget()
     if (m_copyBtn) {
         m_copyBtn->deleteLater();
         m_copyBtn = nullptr;
+    }
+    if (m_speakBtn) {
+        m_speakBtn->deleteLater();
+        m_speakBtn = nullptr;
     }
     if (m_exportBtn) {
         m_exportBtn->deleteLater();
@@ -257,6 +264,15 @@ void MainWidget::setupUi(QWidget *Widget)
 
     m_buttonHorizontalLayout->addWidget(m_copyBtn);
     m_buttonHorizontalLayout->setSpacing(30);
+
+    m_speakBtn = new QToolButton(Widget);
+    m_speakBtn->setObjectName(QStringLiteral("Speak text"));
+    m_speakBtn->setMaximumSize(QSize(36, 36));
+    m_speakBtn->setToolTip(tr("Speak text"));
+
+    m_buttonHorizontalLayout->addWidget(m_speakBtn);
+    m_buttonHorizontalLayout->setSpacing(30);
+
     m_exportBtn = new QToolButton(Widget);
     m_exportBtn->setObjectName(QStringLiteral("Save as TXT"));
     m_exportBtn->setMaximumSize(QSize(36, 36));
@@ -315,6 +331,7 @@ void MainWidget::setupConnect()
 //    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::paletteTypeChanged, this, &MainWidget::setIcons);
     connect(m_exportBtn, &QToolButton::clicked, this, &MainWidget::slotExport);
     connect(m_copyBtn, &QToolButton::clicked, this, &MainWidget::slotCopy);
+    connect(m_speakBtn, &QToolButton::clicked, this, &MainWidget::slotSpeak);
 
     connect(this, &MainWidget::sigResult, this, [ = ](const QString & result) {
         m_plainTextEdit->clear();
@@ -348,6 +365,9 @@ void MainWidget::createLoadingUi()
     }
     if (m_exportBtn) {
         m_exportBtn->setEnabled(false);
+    }
+    if (m_speakBtn) {
+        m_speakBtn->setEnabled(false);
     }
 }
 
@@ -503,6 +523,9 @@ void MainWidget::loadString(const QString &string)
         if (m_exportBtn) {
             m_exportBtn->setEnabled(true);
         }
+        if (m_speakBtn) {
+            m_speakBtn->setEnabled(true);
+        }
     } else {
         resultEmpty();
     }
@@ -519,6 +542,9 @@ void MainWidget::resultEmpty()
     }
     if (m_exportBtn) {
         m_exportBtn->setEnabled(false);
+    }
+    if (m_speakBtn) {
+        m_speakBtn->setEnabled(false);
     }
 }
 
@@ -569,6 +595,28 @@ void MainWidget::paintEvent(QPaintEvent *event)
     return QWidget::paintEvent(event);
 }
 
+void MainWidget::slotSpeak()
+{
+    if (isRunESpeak) {
+        system("killall -9 espeak");
+        espeakID = 0;
+        isRunESpeak = false;
+        return;
+    }
+    QProcess *process = new QProcess();
+    process->start("espeak", QStringList() << "-v" << "zh" << m_plainTextEdit->toPlainText());
+    process->waitForStarted();
+    process->processId();
+    isRunESpeak = true;
+    connect(process, SIGNAL(finished(int)),
+            this, SLOT(MainWidget::EndSpeak(int)));
+}
+
+void MainWidget::EndSpeak(int code)
+{
+    espeakID = 0;
+    isRunESpeak = false;
+}
 
 void MainWidget::slotCopy()
 {
@@ -664,7 +712,10 @@ void MainWidget::setIcons(ColorType themeType)
             m_tipIconLabel->setPixmap(m_tipImage);
             m_tipIconLabel->setFixedSize(QSize(14, 14));
         }
-
+        if (m_speakBtn) {
+            m_speakBtn->setIcon(QIcon(":/assets/speak_dark.png"));
+            m_speakBtn->setIconSize(QSize(36, 36));
+        }
         if (m_copyBtn) {
             QPixmap m_shadowImg = QPixmap(":/mpimage/light/shadow.svg");
             m_copyBtn->setIcon(QIcon(":/assets/copy_dark.svg"));
@@ -735,6 +786,10 @@ void MainWidget::setIcons(ColorType themeType)
         if (m_copyBtn) {
             m_copyBtn->setIcon(QIcon(":/assets/copy_light.svg"));
             m_copyBtn->setIconSize(QSize(36, 36));
+        }
+        if (m_speakBtn) {
+            m_speakBtn->setIcon(QIcon(":/assets/speak_light.png"));
+            m_speakBtn->setIconSize(QSize(36, 36));
         }
         if (m_exportBtn) {
             m_exportBtn->setIcon(QIcon(":/assets/download_light.svg"));

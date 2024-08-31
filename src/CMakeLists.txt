@@ -150,6 +150,13 @@ if(DOTEST)
 endif()
 
 target_link_libraries(${PROJECT_NAME} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets ${DtkWidget_LIBRARIES} ${DtkCore_LIBRARIES} pthread dl -fopenmp)
+# 引入 espeak
+#PKG_SEARCH_MODULE(PKG_ESPEAK REQUIRED espeak-ng)
+# pkg_check_modules(espeak REQUIRED espeak-ng)
+#target_include_directories(${PROJECT_NAME} PUBLIC
+#    ${espeak_INCLUDE_DIRS})
+#target_link_directories(${PROJECT_NAME} PRIVATE
+#    ${espeak_LIBRARIES})
 
 if(DOTEST)
     target_link_libraries(${PROJECT_NAME_TEST} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets ${dtk_lib_LIBRARIES} pthread dl -fopenmp)

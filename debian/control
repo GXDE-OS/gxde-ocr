@@ -11,6 +11,6 @@ Architecture: any
 Breaks: deepin-ocr, durian-ocr
 Replaces: deepin-ocr, durian-ocr
 Provides: deepin-ocr, durian-ocr
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, espeak
 Description: GXDE Ocr for dtk2
  GXDE Ocr is a text recognition software.

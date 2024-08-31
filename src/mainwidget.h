@@ -71,6 +71,7 @@ private slots:
 
     void slotCopy();
     void slotExport();
+    void slotSpeak();
     void onCurrentTextChanged(const QString & text);
 
 //    void change()
@@ -82,6 +83,7 @@ private:
     QHBoxLayout *m_tipHorizontalLayout{nullptr};
     QLabel *m_tiplabel{nullptr};
     QToolButton *m_copyBtn{nullptr};
+    QToolButton *m_speakBtn{nullptr};
     QToolButton *m_exportBtn{nullptr};
     QToolButton *m_changeLauguageBtn{nullptr};
     QComboBox *m_changeLauguageBox{nullptr};
@@ -121,6 +123,10 @@ private:
 
     void switchTheme();
     DSettings *m_settings;
+
+    int espeakID;
+    int isRunESpeak = false;
+    void EndSpeak(int code);
 signals:
     void sigResult(const QString &);
 

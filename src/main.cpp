@@ -60,7 +60,7 @@ QString GetImagePath()
     return QFileDialog::getOpenFileName(NULL,
                                         QObject::tr("Choose image"),
                                         "",
-                                        QObject::tr("Image File (*.jpg; *.jpeg; *.png *.bmp);; All Files (*.*)"));
+                                        QObject::tr("Image File (*.jpg *.jpeg *.png *.bmp);; All Files (*.*)"));
 }
 
 int main(int argc, char *argv[])
