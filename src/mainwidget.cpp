@@ -763,7 +763,7 @@ void MainWidget::setIcons(ColorType themeType)
 
     } else {
         QPalette pal;
-        pal.setColor(QPalette::Background, QColor(255, 255, 255, 179));
+        pal.setColor(QPalette::Background, QColor(255, 255, 255, 50));
         setAutoFillBackground(true);
         setPalette(pal);
         //修复因为切换导致的颜色差
