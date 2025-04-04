@@ -31,6 +31,10 @@
 //#include <DFontSizeManager>
 //#include <DHiDPIHelper>
 
+#include <QtConcurrent>
+#include <QDBusMessage>
+#include <QDBusConnection>
+
 #include <QFile>
 #include <QProcess>
 
@@ -597,19 +601,14 @@ void MainWidget::paintEvent(QPaintEvent *event)
 
 void MainWidget::slotSpeak()
 {
-    if (isRunESpeak) {
-        system("killall -9 espeak");
-        espeakID = 0;
-        isRunESpeak = false;
-        return;
-    }
-    QProcess *process = new QProcess();
-    process->start("espeak", QStringList() << "-v" << "zh" << m_plainTextEdit->toPlainText());
-    process->waitForStarted();
-    process->processId();
-    isRunESpeak = true;
-    connect(process, SIGNAL(finished(int)),
-            this, SLOT(MainWidget::EndSpeak(int)));
+    QDBusMessage dbus = QDBusMessage::createMethodCall("com.gxde.daemon.ai.speaker",
+                                                           "/com/gxde/daemon/ai/speaker",
+                                                           "com.gxde.daemon.ai.speaker",
+                                                           "TextToSpeech");
+    dbus << m_plainTextEdit->toPlainText();
+    QtConcurrent::run([=]() {
+        QDBusConnection::sessionBus().call(dbus);
+    });
 }
 
 void MainWidget::EndSpeak(int code)
