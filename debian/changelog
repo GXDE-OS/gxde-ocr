@@ -1,8 +1,10 @@
-durian-ocr (1.1.3) UNRELEASED; urgency=medium
+durian-ocr (1.1.4) UNRELEASED; urgency=medium
 
   * 更换文本朗读接口
+  * fix: 添加模型文件来源描述
+  * fix: 修复初始弹出界面后，左侧图片可以轻微挪动
 
- -- gfdgd_xi <3025613752@qq.com>  Fri, 04 Apr 2025 13:16:31 +0800
+ -- gfdgd_xi <3025613752@qq.com>  Sun, 02 Nov 2025 11:50:24 +0800
 
 durian-ocr (1.0) unstable; urgency=medium
 
