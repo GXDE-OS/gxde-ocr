@@ -82,6 +82,8 @@ int main(int argc, char *argv[])
 //#endif
     DApplication::loadDXcbPlugin();
     DApplication app(argc, argv);
+    // 启用高DPI支持
+    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
     app.setOrganizationName("GXDE");
     app.setApplicationName("gxde-ocr");
     app.setProductName(QObject::tr("GXDE OCR Tool"));
