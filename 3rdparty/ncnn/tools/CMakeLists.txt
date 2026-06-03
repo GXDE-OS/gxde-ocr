@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1) # for CMAKE_CXX_STANDARD
+cmake_minimum_required(VERSION 3.10) # for CMAKE_CXX_STANDARD
 set(CMAKE_CXX_STANDARD 11)
 macro(ncnn_install_tool toolname)
     install(TARGETS ${toolname} RUNTIME DESTINATION bin)

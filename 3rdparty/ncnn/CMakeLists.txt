@@ -29,7 +29,7 @@ if(APPLE OR IOS)
 endif()
 message(STATUS "NCNN_VERSION_STRING = ${NCNN_VERSION_STRING}")
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE release CACHE STRING "Choose the type of build" FORCE)
