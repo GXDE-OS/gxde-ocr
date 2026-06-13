@@ -1,12 +1,12 @@
 #ifndef CONTROLWIDGET_H
 #define CONTROLWIDGET_H
 
-#include <DMainWindow>
+#include <dtk2/DWidget/DMainWindow>
 #include <QPushButton>
 #include <QLabel>
 #include <QVBoxLayout>
 
-DWIDGET_USE_NAMESPACE
+using namespace Dtk::Widget;
 
 class ControlWidget : public DMainWindow
 {

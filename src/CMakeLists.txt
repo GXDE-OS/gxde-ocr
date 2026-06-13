@@ -1,10 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(gxde-ocr)
 
-#for Qt
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -19,18 +17,16 @@ if(DOTEST)
     endif()
 endif()
 
-find_package(Qt5 REQUIRED ${QtModule})
-# 引入 dtk2
-find_package(DtkWidget REQUIRED)
-find_package(DtkCore REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS ${QtModule})
+find_package(Dtk2widget REQUIRED)
 
 
 include_directories(
-    ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5DBus_INCLUDE_DIRS}
-    ${Qt5_Concurrent_INCLUDE_DIRS}
+    ${Qt6Core_INCLUDE_DIRS}
+    ${Qt6DBus_INCLUDE_DIRS}
+    ${Qt6Concurrent_INCLUDE_DIRS}
+    ${DtkCore_INCLUDE_DIRS}
 )
-add_definitions(${QT_DEFINITIONS})
 
 include(CMakePackageConfigHelpers)
 
@@ -68,11 +64,11 @@ aux_source_directory(./paddleocr-ncnn allSource)
 file(GLOB TargetTsFiles LIST_DIRECTORIES false ../translations/${PROJECT_NAME}*.ts)
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 if (NOT (${CMAKE_BUILD_TYPE} MATCHES "Debug"))
-    qt5_create_translation(LangSrcs ${allSource} ${TargetTsFiles}
+    qt6_create_translation(LangSrcs ${allSource} ${TargetTsFiles}
         OPTIONS )
 endif()
-qt5_add_translation(${TargetTsFiles})
-set_source_files_properties(${qmfiles} PROPERTIES OUTPUT_LOCATION "translations")
+qt6_add_translation(QmFiles ${TargetTsFiles})
+set_source_files_properties(${QmFiles} PROPERTIES OUTPUT_LOCATION "translations")
 
 #QRC file
 set(AllQRC ../resource.qrc)
@@ -135,25 +131,10 @@ if(DOTEST)
     add_dependencies(test ${PROJECT_NAME_TEST})
 endif()
 
-#for dtk
-find_package(PkgConfig REQUIRED)
-#pkg_check_modules(dtk_lib REQUIRED dtkwidget dtkcore )
-#target_include_directories(${PROJECT_NAME} PUBLIC ${dtk_lib_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} opencv_world ncnn Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Concurrent Qt6::DBus ${Dtk2widget_LIBRARIES} Dtk6::Core pthread dl)
 
 if(DOTEST)
-    target_include_directories(${PROJECT_NAME_TEST} PUBLIC ${dtk_lib_INCLUDE_DIRS})
-endif()
-
-qt5_use_modules(${PROJECT_NAME} ${QtModule})
-
-if(DOTEST)
-    qt5_use_modules(${PROJECT_NAME_TEST} ${QtModule})
-endif()
-
-target_link_libraries(${PROJECT_NAME} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Concurrent ${DtkWidget_LIBRARIES} ${DtkCore_LIBRARIES} pthread dl -fopenmp)
-
-if(DOTEST)
-    target_link_libraries(${PROJECT_NAME_TEST} opencv_world ncnn Qt5::Core Qt5::Gui Qt5::Widgets ${dtk_lib_LIBRARIES} pthread dl -fopenmp)
+    target_link_libraries(${PROJECT_NAME_TEST} opencv_world ncnn Qt6::Core Qt6::Gui Qt6::Widgets ${Dtk2widget_LIBRARIES} pthread dl)
 endif()
 
 # install

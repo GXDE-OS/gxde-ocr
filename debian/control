@@ -2,7 +2,17 @@ Source: durian-ocr
 Section: utils
 Priority: optional
 Maintainer: Liuminghang, gfdgd xi <3025613752@qq.com>
-Build-Depends: debhelper (>= 11), cmake, qtbase5-dev, pkg-config,qttools5-dev-tools,qttools5-dev, libdtkcore2-dev, libdtkwidget2-dev, libavogadro-dev
+Build-Depends: debhelper (>= 11), 
+ cmake, 
+ qt6-base-dev,
+ libdtk2widget6-dev,
+ qt6-tools-dev,
+ libdtk6gui-dev,
+ deepin-gettext-tools,
+ cmake,
+ pkg-config,
+ qt6-tools-dev-tools,
+ libavogadro-dev
 Standards-Version: 4.1.3
 Homepage: http://www.deepin.org/
 

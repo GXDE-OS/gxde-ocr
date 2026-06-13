@@ -26,7 +26,6 @@
 #include <QDebug>
 #include <QApplication>
 #include <QScreen>
-#include <QDesktopWidget>
 
 static OcrApplication * ocrApp =nullptr;
 OcrApplication *OcrApplication::instance()
@@ -55,7 +54,7 @@ bool OcrApplication::openFile(QString filePath)
             //第一次启动才居中
             if (m_loadingCount == 0) {
 //                Dtk::Widget::moveToCenter(win);
-                win->move(qApp->desktop()->screen()->rect().center() - win->rect().center());
+                win->move(QGuiApplication::primaryScreen()->geometry().center() - win->rect().center());
                 m_loadingCount++;
             }
         }
@@ -78,7 +77,7 @@ void OcrApplication::openImage(QImage image)
             //第一次启动才居中
             if (m_loadingCount == 0) {
 //                Dtk::Widget::moveToCenter(win);
-                win->move(qApp->desktop()->screen()->rect().center() - win->rect().center());
+                win->move(QGuiApplication::primaryScreen()->geometry().center() - win->rect().center());
                 m_loadingCount++;
             }
         } else {
@@ -98,7 +97,7 @@ void OcrApplication::openImageAndName(QImage image, QString imageName)
             //第一次启动才居中
             if (m_loadingCount == 0) {
 //                Dtk::Widget::moveToCenter(win);
-                win->move(qApp->desktop()->screen()->rect().center() - win->rect().center());
+                win->move(QGuiApplication::primaryScreen()->geometry().center() - win->rect().center());
                 m_loadingCount++;
             }
         } else {

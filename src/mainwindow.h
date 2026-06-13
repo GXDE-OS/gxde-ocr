@@ -23,9 +23,9 @@
 #define MAINWINDOW_H
 
 //#include <QMainWindow>
-#include <DMainWindow>
+#include <dtk2/DWidget/DMainWindow>
 
-DWIDGET_USE_NAMESPACE
+using namespace Dtk::Widget;
 
 class MainWidget;
 

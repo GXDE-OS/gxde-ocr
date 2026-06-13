@@ -1,7 +1,7 @@
 #include "controlwidget.h"
 #include <QFileDialog>
 #include "ocrapplication.h"
-#include <DTitlebar>
+#include <dtk2/DWidget/DTitlebar>
 
 ControlWidget::ControlWidget(QWidget *parent) : DMainWindow(parent)
 {

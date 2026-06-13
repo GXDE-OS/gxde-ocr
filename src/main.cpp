@@ -29,17 +29,15 @@
 //#include <DWidgetUtil>
 //#include <DGuiApplicationHelper>
 //#include <QApplication>
-#include <DApplication>
+#include <dtk2/DWidget/DApplication>
 
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusInterface>
-#include <QDesktopWidget>
+#include <QScreen>
 
 //#include "controlwidget.h"
 #include <QFileDialog>
-
-DWIDGET_USE_NAMESPACE
 
 //判断是否是wayland
 bool CheckWayland()
@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
 
         if(!instance->openFile(QString(argv[1]))){
             QString path = GetImagePath();
-            if (path != "" && path != NULL) {
+            if (!path.isEmpty()) {
                 OcrApplication::instance()->openFile(path);
             }
         }
@@ -139,7 +137,7 @@ int main(int argc, char *argv[])
         qDebug() << __FUNCTION__ << __LINE__;
         if(!instance->openFile(QString(argv[1]))){
             QString path = GetImagePath();
-            if (path != "" && path != NULL) {
+            if (!path.isEmpty()) {
                 pOcr->openFile(path);
             }
         }

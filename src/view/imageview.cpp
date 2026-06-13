@@ -118,7 +118,7 @@ void ImageView::RotateImage(const int &index)
 {
     if (!m_pixmapItem && scene()) return;
     QPixmap pixmap = m_pixmapItem->pixmap();
-    QMatrix rotate;
+    QTransform rotate;
     rotate.rotate(index);
 
     pixmap = pixmap.transformed(rotate, Qt::FastTransformation);
@@ -239,8 +239,8 @@ void ImageView::resizeEvent(QResizeEvent *event)
 
 void ImageView::wheelEvent(QWheelEvent *event)
 {
-    qreal factor = qPow(1.2, event->delta() / 240.0);
-    scaleAtPoint(event->pos(), factor);
+    qreal factor = qPow(1.2, event->angleDelta().y() / 240.0);
+    scaleAtPoint(event->position().toPoint(), factor);
 
     event->accept();
 }

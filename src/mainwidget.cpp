@@ -20,12 +20,12 @@
 #include <QFontMetrics>
 #include <QFont>
 
-//#include <DGuiApplicationHelper>
-#include <DMainWindow>
-#include <DTitlebar>
+#include <dtk2/DWidget/DMainWindow>
+#include <dtk2/DWidget/DTitlebar>
 #include <QMessageBox>
 #include <QToolButton>
-#include "dthememanager.h"
+
+using namespace Dtk::Widget;
 //#include <DFloatingWidget>
 //#include <DAnchors>
 //#include <DFontSizeManager>
@@ -37,8 +37,6 @@
 
 #include <QFile>
 #include <QProcess>
-
-DWIDGET_USE_NAMESPACE
 
 #define App (static_cast<QApplication*>(QCoreApplication::instance()))
 MainWidget::MainWidget(QWidget *parent) :
@@ -116,7 +114,7 @@ MainWidget::~MainWidget()
 
 void MainWidget::switchTheme()
 {
-    QString theme = DThemeManager::instance()->theme();
+    QString theme = m_settings->getOption("theme").toString();
 
     if (theme == "light") {
         m_settings->setOption("theme", "dark");
@@ -125,7 +123,6 @@ void MainWidget::switchTheme()
     }
 
     theme = m_settings->getOption("theme").toString();
-    DThemeManager::instance()->setTheme(theme);
     setIcons(getTheme());
     m_themeAction->setChecked(theme == "dark");
 }
@@ -377,7 +374,8 @@ void MainWidget::createLoadingUi()
 
 ColorType MainWidget::getTheme() const
 {
-    return DThemeManager::instance()->theme() == "light" ? LightType : DarkType;
+    QString theme = m_settings->getOption("theme").toString();
+    return theme == "light" ? LightType : DarkType;
 }
 
 void MainWidget::deleteLoadingUi()
@@ -694,12 +692,12 @@ void MainWidget::setIcons(ColorType themeType)
 {
     if (themeType == DarkType) {
         QPalette pal;
-        pal.setColor(QPalette::Background, QColor(32, 32, 32, 179));
+        pal.setColor(QPalette::Window, QColor(32, 32, 32, 179));
         setAutoFillBackground(true);
         setPalette(pal);
         if (m_resultWidget) {
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(40, 40, 40));
+            pal.setColor(QPalette::Window, QColor(40, 40, 40));
             m_resultWidget->setAutoFillBackground(true);
             m_resultWidget->setPalette(pal);
             //增加frame的颜色设置
@@ -734,13 +732,13 @@ void MainWidget::setIcons(ColorType themeType)
             m_imageview->setForegroundBrush(QColor(0, 0, 0, 127)); //设置场景的前景色，类似于遮罩
             m_imageview->setBackgroundBrush(QColor(34, 34, 34));
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(0, 0, 0, 125));
+            pal.setColor(QPalette::Window, QColor(0, 0, 0, 125));
             m_frame->setAutoFillBackground(true);
             m_frame->setPalette(pal);
         } else if (m_imageview) {
             m_imageview->setBackgroundBrush(QColor(35, 35, 35));
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(35, 35, 35));
+            pal.setColor(QPalette::Window, QColor(35, 35, 35));
             m_frame->setAutoFillBackground(true);
             m_frame->setPalette(pal);
         }
@@ -762,13 +760,13 @@ void MainWidget::setIcons(ColorType themeType)
 
     } else {
         QPalette pal;
-        pal.setColor(QPalette::Background, QColor(255, 255, 255, 50));
+        pal.setColor(QPalette::Window, QColor(255, 255, 255, 50));
         setAutoFillBackground(true);
         setPalette(pal);
         //修复因为切换导致的颜色差
         if (m_resultWidget && m_frameStack) {
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(255, 255, 255));
+            pal.setColor(QPalette::Window, QColor(255, 255, 255));
             m_resultWidget->setAutoFillBackground(true);
             m_resultWidget->setPalette(pal);
             //增加frame的颜色设置
@@ -804,14 +802,14 @@ void MainWidget::setIcons(ColorType themeType)
             m_imageview->setForegroundBrush(QColor(0, 0, 0, 77)); //设置场景的前景色，类似于遮罩
             m_imageview->setBackgroundBrush(QColor(248, 248, 248));
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(172, 172, 172));
+            pal.setColor(QPalette::Window, QColor(172, 172, 172));
             m_frame->setAutoFillBackground(true);
             m_frame->setPalette(pal);
         } else if (m_imageview) {
             //修改为正确的背景setBackgroundBrush
             m_imageview->setBackgroundBrush(QColor(248, 248, 248));
             QPalette pal;
-            pal.setColor(QPalette::Background, QColor(248, 248, 248));
+            pal.setColor(QPalette::Window, QColor(248, 248, 248));
             m_frame->setAutoFillBackground(true);
             m_frame->setPalette(pal);
         }
