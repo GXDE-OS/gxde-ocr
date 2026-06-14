@@ -19,7 +19,7 @@
 
 namespace ncnn {
 
-class InnerProduct_vulkan : virtual public InnerProduct
+class InnerProduct_vulkan : public InnerProduct
 {
 public:
     InnerProduct_vulkan();
@@ -35,6 +35,9 @@ public:
 
 public:
     ncnn::Layer* flatten;
+
+    Mat weight_data_packed;
+    Mat bias_data_packed;
 
     VkMat weight_data_gpu;
     VkMat bias_data_gpu;

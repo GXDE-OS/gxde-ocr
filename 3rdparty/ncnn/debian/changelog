@@ -1,0 +1,43 @@
+ncnn (1.0.20240820-0deepin2) unstable; urgency=medium
+
+  * Sync to Upstream.
+
+ -- lichenggang <lichenggang@deepin.org>  Wed, 11 Dec 2024 16:36:07 +0800
+
+ncnn (1.0.20230223-0deepin2) unstable; urgency=medium
+
+  * Move to main.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 06 Sep 2024 13:11:19 +0800
+
+ncnn (1.0.20230223-0deepin1) unstable; urgency=medium
+
+  * add fix-gcc-13-build-error.patch.
+
+ -- LiChengGang <lichenggang@uniontech.com>  Thu, 21 Dec 2023 22:31:49 +0800
+
+ncnn (1.0.20230223) unstable; urgency=medium
+
+  * Sync to Upstream
+  * Remove patch for cmake 3.13
+
+ -- WangZhengYang <wangzhengyang@uniontech.com>  Wed, 3 Mar 2023 9:15:34 +0800
+
+ncnn (1.0.20221128.1-deepin1) unstable; urgency=medium
+
+  * Sync to Upstream
+  * Fix vulkan module cannot use cmake 3.13 to build
+
+ -- WangZhengYang <wangzhengyang@uniontech.com>  Tue, 6 Dec 2022 11:21:54 +0800
+
+ncnn (1.0.20220729+u002) UNRELEASED; urgency=medium
+
+  * update
+
+ -- Deepin Packages Builder <packages@deepin.com>  Tue, 20 Sep 2022 16:51:21 +0800
+
+ncnn (1.0.20220729) unstable; urgency=medium
+
+  * Initial first edition on last release
+
+ -- WangZhengYang <wangzhengyang@uniontech.com>  Mon, 1 Aug 2022 15:21:54 +0800

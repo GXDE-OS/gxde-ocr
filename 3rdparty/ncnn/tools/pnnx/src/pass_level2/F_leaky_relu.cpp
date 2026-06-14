@@ -38,16 +38,15 @@ pnnx.Output             output      1 0 out
 
 REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_leaky_relu, 10)
 
-class F_leaky_relu_1 : public GraphRewriterPass
+class F_leaky_relu_onnx : public GraphRewriterPass
 {
 public:
     const char* match_pattern_graph() const
     {
         return R"PNNXIR(7767517
-4 3
-pnnx.Input              input_0     0 1 input
-pnnx.Input              input_1     0 1 negative_slope
-aten::leaky_relu_       op_0        2 1 input negative_slope out
+3 2
+pnnx.Input              input       0 1 input
+LeakyRelu               op_0        1 1 input out alpha=%negative_slope
 pnnx.Output             output      1 0 out
 )PNNXIR";
     }
@@ -58,6 +57,6 @@ pnnx.Output             output      1 0 out
     }
 };
 
-REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_leaky_relu_1, 10)
+REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_leaky_relu_onnx, 10)
 
 } // namespace pnnx

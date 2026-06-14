@@ -1,12 +1,13 @@
-durian-ocr (2.0.0) UNRELEASED; urgency=medium
+durian-ocr (2.0.1) UNRELEASED; urgency=medium
 
   * 更换文本朗读接口
   * fix: 添加模型文件来源描述
   * fix: 修复初始弹出界面后，左侧图片可以轻微挪动
   * 启用高DPI支持，修复图标模糊问题
   * Qt6 迁移
+  * 升级 ncnn 版本
 
- -- gfdgd_xi <3025613752@qq.com>  Sat, 13 Jun 2026 20:33:10 +0800
+ -- gfdgd_xi <3025613752@qq.com>  Sun, 14 Jun 2026 08:26:19 +0800
 
 durian-ocr (1.0) unstable; urgency=medium
 

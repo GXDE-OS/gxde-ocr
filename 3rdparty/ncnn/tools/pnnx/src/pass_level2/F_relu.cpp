@@ -37,7 +37,7 @@ pnnx.Output             output      1 0 out
 
 REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_relu, 10)
 
-class F_relu_1 : public GraphRewriterPass
+class F_relu_onnx : public GraphRewriterPass
 {
 public:
     const char* match_pattern_graph() const
@@ -45,7 +45,7 @@ public:
         return R"PNNXIR(7767517
 3 2
 pnnx.Input              input       0 1 input
-aten::relu_             op_0        1 1 input out
+Relu                    op_0        1 1 input out
 pnnx.Output             output      1 0 out
 )PNNXIR";
     }
@@ -56,6 +56,6 @@ pnnx.Output             output      1 0 out
     }
 };
 
-REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_relu_1, 10)
+REGISTER_GLOBAL_PNNX_GRAPH_REWRITER_PASS(F_relu_onnx, 10)
 
 } // namespace pnnx

@@ -45,7 +45,41 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
     int in_elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
     int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
 
-    if (shape.dims == 2 && shape.w == num_input && shape.h > 1)
+    // src = inch-outch
+    // dst = pa-pb-inch/pa-outch/pb
+    {
+        Mat weight_data_r2 = weight_data.reshape(num_input, num_output);
+
+        weight_data_packed.create(num_input / in_elempack, num_output / out_elempack, (size_t)4 * in_elempack * out_elempack, in_elempack * out_elempack);
+
+        for (int q = 0; q + (out_elempack - 1) < num_output; q += out_elempack)
+        {
+            float* g00 = weight_data_packed.row(q / out_elempack);
+
+            for (int p = 0; p + (in_elempack - 1) < num_input; p += in_elempack)
+            {
+                for (int i = 0; i < out_elempack; i++)
+                {
+                    const float* k0 = weight_data_r2.row(q + i);
+                    k0 += p;
+
+                    for (int j = 0; j < in_elempack; j++)
+                    {
+                        g00[0] = k0[j];
+
+                        g00++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (bias_term)
+    {
+        convert_packing(bias_data, bias_data_packed, out_elempack, opt);
+    }
+
+    if (shape.dims == 2 && shape.w == num_input)
     {
         // gemm
         int elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
@@ -120,6 +154,12 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
         pipeline_innerproduct_gemm->set_optimal_local_size_xyz(local_size_xyz);
         pipeline_innerproduct_gemm->create(shader_type_index, opt, specializations);
 
+        if (opt.lightmode)
+        {
+            weight_data.release();
+            bias_data.release();
+        }
+
         return 0;
     }
 
@@ -180,7 +220,7 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
     }
 
     {
-        flatten = ncnn::create_layer(ncnn::LayerType::Flatten);
+        flatten = ncnn::create_layer_vulkan(ncnn::LayerType::Flatten);
         flatten->vkdev = vkdev;
 
         flatten->bottom_shapes.resize(1);
@@ -327,7 +367,19 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
         pipeline_innerproduct_gemm->set_optimal_local_size_xyz(local_size_xyz);
         pipeline_innerproduct_gemm->create(shader_type_index, opt, specializations);
 
+        if (opt.lightmode)
+        {
+            weight_data.release();
+            bias_data.release();
+        }
+
         return 0;
+    }
+
+    if (opt.lightmode)
+    {
+        weight_data.release();
+        bias_data.release();
     }
 
     return 0;
@@ -358,41 +410,6 @@ int InnerProduct_vulkan::destroy_pipeline(const Option& opt)
 
 int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
 {
-    const int num_input = weight_data_size / num_output;
-
-    int in_elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
-
-    // src = inch-outch
-    // dst = pa-pb-inch/pa-outch/pb
-    Mat weight_data_packed;
-    {
-        Mat weight_data_r2 = weight_data.reshape(num_input, num_output);
-
-        weight_data_packed.create(num_input / in_elempack, num_output / out_elempack, (size_t)4 * in_elempack * out_elempack, in_elempack * out_elempack);
-
-        for (int q = 0; q + (out_elempack - 1) < num_output; q += out_elempack)
-        {
-            float* g00 = weight_data_packed.row(q / out_elempack);
-
-            for (int p = 0; p + (in_elempack - 1) < num_input; p += in_elempack)
-            {
-                for (int i = 0; i < out_elempack; i++)
-                {
-                    const float* k0 = weight_data_r2.row(q + i);
-                    k0 += p;
-
-                    for (int j = 0; j < in_elempack; j++)
-                    {
-                        g00[0] = k0[j];
-
-                        g00++;
-                    }
-                }
-            }
-        }
-    }
-
     if (support_image_storage && opt.use_image_storage)
     {
         cmd.record_upload(weight_data_packed, weight_data_gpu_image, opt);
@@ -402,11 +419,10 @@ int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
         cmd.record_upload(weight_data_packed, weight_data_gpu, opt);
     }
 
+    weight_data_packed.release();
+
     if (bias_term)
     {
-        Mat bias_data_packed;
-        convert_packing(bias_data, bias_data_packed, out_elempack, opt);
-
         if (support_image_storage && opt.use_image_storage)
         {
             cmd.record_upload(bias_data_packed, bias_data_gpu_image, opt);
@@ -415,6 +431,8 @@ int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
         {
             cmd.record_upload(bias_data_packed, bias_data_gpu, opt);
         }
+
+        bias_data_packed.release();
     }
 
     return 0;
@@ -427,7 +445,7 @@ int InnerProduct_vulkan::forward(const VkMat& bottom_blob, VkMat& top_blob, VkCo
     int in_elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
     int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
 
-    if (bottom_blob.dims == 2 && bottom_blob.w == num_input && bottom_blob.h * bottom_blob.elempack > 1)
+    if (bottom_blob.dims == 2 && bottom_blob.w == num_input)
     {
         // gemm
         int h = bottom_blob.h;
@@ -587,7 +605,7 @@ int InnerProduct_vulkan::forward(const VkImageMat& bottom_blob, VkImageMat& top_
     int in_elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
     int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
 
-    if (bottom_blob.dims == 2 && bottom_blob.w == num_input && bottom_blob.h * bottom_blob.elempack > 1)
+    if (bottom_blob.dims == 2 && bottom_blob.w == num_input)
     {
         // gemm
         int h = bottom_blob.h;

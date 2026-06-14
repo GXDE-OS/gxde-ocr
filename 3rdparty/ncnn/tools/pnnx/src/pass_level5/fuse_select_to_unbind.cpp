@@ -37,8 +37,19 @@ void fuse_select_to_unbind(Graph& graph)
             if (input_rank == 0)
                 continue;
 
+            if (input_rank == 1)
+            {
+                // skip select scalar
+                continue;
+            }
+
             int dim = op->params.at("dim").i;
             const int select_dimsize = op_in->shape[dim];
+            if (select_dimsize == -1)
+            {
+                // skip dynamic
+                continue;
+            }
 
             // select 0..n
             std::vector<int> select_n(select_dimsize, 0);
@@ -53,6 +64,9 @@ void fuse_select_to_unbind(Graph& graph)
 
                 int dim2 = x->params.at("dim").i;
                 int index2 = x->params.at("index").i;
+
+                if (index2 < 0)
+                    index2 = select_dimsize + index2;
 
                 if (dim == dim2)
                 {

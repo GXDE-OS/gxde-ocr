@@ -91,23 +91,19 @@ int ConvolutionDepthWise_x86::create_pipeline(const Option& opt)
 #if __SSE2__
 #if __AVX__
         // pack16
+#if __AVX512F__
         if (elempack == 16)
         {
             Mat weight_data_r2 = weight_data.reshape(maxk, group);
-            convert_packing(weight_data_r2, weight_data_packed, 16, opt);
-
-            return 0;
+            convert_packing(weight_data_r2, weight_data_tm, 16, opt);
         }
-#if __AVX512F__
 #endif // __AVX512F__
 
         // pack8
         if (elempack == 8)
         {
             Mat weight_data_r2 = weight_data.reshape(maxk, group);
-            convert_packing(weight_data_r2, weight_data_packed, 8, opt);
-
-            return 0;
+            convert_packing(weight_data_r2, weight_data_tm, 8, opt);
         }
 #endif // __AVX__
 
@@ -115,9 +111,7 @@ int ConvolutionDepthWise_x86::create_pipeline(const Option& opt)
         if (elempack == 4)
         {
             Mat weight_data_r2 = weight_data.reshape(maxk, group);
-            convert_packing(weight_data_r2, weight_data_packed, 4, opt);
-
-            return 0;
+            convert_packing(weight_data_r2, weight_data_tm, 4, opt);
         }
 #endif // __SSE2__
 
@@ -126,17 +120,29 @@ int ConvolutionDepthWise_x86::create_pipeline(const Option& opt)
             // depth-wise specific
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                return 0;
+                weight_data_tm = weight_data;
             }
-            if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
+            else if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                return 0;
+                weight_data_tm = weight_data;
+            }
+            else
+            {
+                create_group_ops(opt);
             }
         }
+
+        if (opt.lightmode)
+            weight_data.release();
+
+        return 0;
     }
 
     // group convolution
     create_group_ops(opt);
+
+    if (opt.lightmode)
+        weight_data.release();
 
     return 0;
 }
@@ -159,12 +165,12 @@ int ConvolutionDepthWise_x86::create_group_ops(const Option& opt)
 
     for (int g = 0; g < group; g++)
     {
-        Mat weight_data_g = weight_data.range(maxk * channels_g * num_output_g * g, maxk * channels_g * num_output_g);
+        Mat weight_data_g = weight_data.range(maxk * channels_g * num_output_g * g, maxk * channels_g * num_output_g).clone();
         Mat bias_data_g;
         if (bias_term)
             bias_data_g = bias_data.range(num_output_g * g, num_output_g);
 
-        ncnn::Layer* op = ncnn::create_layer(ncnn::LayerType::Convolution);
+        ncnn::Layer* op = ncnn::create_layer_cpu(ncnn::LayerType::Convolution);
 
         // set param
         ncnn::ParamDict pd;
@@ -260,7 +266,7 @@ int ConvolutionDepthWise_x86::destroy_pipeline(const Option& opt)
 int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) const
 {
 #if NCNN_INT8
-    if (opt.use_int8_inference && weight_data.elemsize == (size_t)1u)
+    if (opt.use_int8_inference && int8_scale_term)
     {
         return forward_int8_x86(bottom_blob, top_blob, opt);
     }
@@ -314,7 +320,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         {
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw3x3s1_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s1_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -325,7 +331,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw3x3s2_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s2_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -336,7 +342,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw5x5s1_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s1_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -347,7 +353,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw5x5s2_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s2_pack16_avx512(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -383,7 +389,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
                 for (int g = 0; g < channels; g++)
                 {
                     float* outptr = top_blob.channel(g);
-                    const float* kptr = (const float*)weight_data_packed + maxk * g * 16;
+                    const float* kptr = (const float*)weight_data_tm + maxk * g * 16;
                     const Mat m = bottom_blob_bordered.channel(g);
 
                     for (int i = 0; i < outh; i++)
@@ -425,7 +431,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         {
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw3x3s1_pack8_avx(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s1_pack8_avx(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -436,7 +442,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw3x3s2_pack8_avx(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s2_pack8_avx(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -447,7 +453,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw5x5s1_pack8_avx(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s1_pack8_avx(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -458,7 +464,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw5x5s2_pack8_avx(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s2_pack8_avx(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -494,7 +500,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
                 for (int g = 0; g < channels; g++)
                 {
                     float* outptr = top_blob.channel(g);
-                    const float* kptr = (const float*)weight_data_packed + maxk * g * 8;
+                    const float* kptr = (const float*)weight_data_tm + maxk * g * 8;
                     const Mat m = bottom_blob_bordered.channel(g);
 
                     for (int i = 0; i < outh; i++)
@@ -538,7 +544,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         {
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw3x3s1_pack4_sse(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s1_pack4_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -549,7 +555,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw3x3s2_pack4_sse(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw3x3s2_pack4_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -560,7 +566,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw5x5s1_pack4_sse(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s1_pack4_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -571,7 +577,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 5 && kernel_h == 5 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw5x5s2_pack4_sse(bottom_blob_bordered, top_blob, weight_data_packed, bias_data, opt);
+                convdw5x5s2_pack4_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -606,7 +612,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
                 for (int g = 0; g < channels; g++)
                 {
                     float* outptr = top_blob.channel(g);
-                    const float* kptr = (const float*)weight_data_packed + maxk * g * 4;
+                    const float* kptr = (const float*)weight_data_tm + maxk * g * 4;
                     const Mat m = bottom_blob_bordered.channel(g);
 
                     for (int i = 0; i < outh; i++)
@@ -647,7 +653,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         {
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
             {
-                convdw3x3s1_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, opt);
+                convdw3x3s1_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -658,7 +664,7 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
             }
             if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
             {
-                convdw3x3s2_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, opt);
+                convdw3x3s2_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, opt);
 
                 if (activation)
                 {
@@ -699,6 +705,8 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         Option opt_p = opt;
         opt_p.blob_allocator = opt.workspace_allocator;
         convert_packing(bottom_blob_bordered, bottom_blob_bordered_unpacked, g_elempack, opt_p);
+        if (bottom_blob_bordered_unpacked.empty())
+            return -100;
     }
 
     Mat top_blob_unpacked = top_blob;
@@ -720,13 +728,17 @@ int ConvolutionDepthWise_x86::forward(const Mat& bottom_blob, Mat& top_blob, con
         opt_g.blob_allocator = top_blob_unpacked.allocator;
 
         // forward
-        op->forward(bottom_blob_bordered_g, top_blob_g, opt_g);
+        int ret = op->forward(bottom_blob_bordered_g, top_blob_g, opt_g);
+        if (ret != 0)
+            return ret;
     }
 
     // packing
     if (out_g_elempack < out_elempack)
     {
         convert_packing(top_blob_unpacked, top_blob, out_elempack, opt);
+        if (top_blob.empty())
+            return -100;
     }
     else
     {
@@ -770,7 +782,7 @@ int ConvolutionDepthWise_x86::forward(const std::vector<Mat>& bottom_blobs, std:
         bias_data_flattened.elempack = 1;
     }
 
-    ncnn::Layer* op = ncnn::create_layer(ncnn::LayerType::ConvolutionDepthWise);
+    ncnn::Layer* op = ncnn::create_layer_cpu(ncnn::LayerType::ConvolutionDepthWise);
 
     ncnn::ParamDict pd;
     pd.set(0, _num_output);
@@ -831,14 +843,25 @@ int ConvolutionDepthWise_x86::create_pipeline_int8_x86(const Option& opt)
         if (elempack == 8)
         {
             Mat weight_data_r2 = weight_data.reshape(maxk, group);
-            convert_packing(weight_data_r2, weight_data_int8, 8, opt);
+            convert_packing(weight_data_r2, weight_data_tm, 8, opt);
         }
+
+        if (elempack == 1)
+        {
+            weight_data_tm = weight_data;
+        }
+
+        if (opt.lightmode)
+            weight_data.release();
 
         return 0;
     }
 
     // group convolution
     create_group_ops(opt);
+
+    if (opt.lightmode)
+        weight_data.release();
 
     return 0;
 }
@@ -876,6 +899,8 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
         Option opt_q = opt;
         opt_q.blob_allocator = opt.workspace_allocator;
         quantize_to_int8(bottom_blob, bottom_blob_int8, scales, opt_q);
+        if (bottom_blob_int8.empty())
+            return -100;
     }
 
     Mat bottom_blob_bordered;
@@ -938,7 +963,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                 {
                     signed char* outptr_s8 = top_blob.channel(g);
                     float* outptr_f32 = top_blob.channel(g);
-                    const signed char* kptr = (const signed char*)weight_data_int8 + maxk * g * 8;
+                    const signed char* kptr = (const signed char*)weight_data_tm + maxk * g * 8;
                     const Mat m = bottom_blob_bordered.channel(g);
 
                     for (int i = 0; i < outh; i++)
@@ -1045,7 +1070,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                         requantize_scales.push_back(scale_out);
                     }
 
-                    convdw3x3s1_int8_requant_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, requantize_scales, opt);
+                    convdw3x3s1_int8_requant_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, requantize_scales, opt);
                 }
                 else
                 {
@@ -1057,7 +1082,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                         dequantize_scales.push_back(top_rescale);
                     }
 
-                    convdw3x3s1_int8_dequant_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, dequantize_scales, opt);
+                    convdw3x3s1_int8_dequant_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, dequantize_scales, opt);
                 }
 
                 if (activation)
@@ -1084,7 +1109,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                         requantize_scales.push_back(scale_out);
                     }
 
-                    convdw3x3s2_int8_requant_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, requantize_scales, opt);
+                    convdw3x3s2_int8_requant_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, requantize_scales, opt);
                 }
                 else
                 {
@@ -1096,7 +1121,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                         dequantize_scales.push_back(top_rescale);
                     }
 
-                    convdw3x3s2_int8_dequant_sse(bottom_blob_bordered, top_blob, weight_data, bias_data, dequantize_scales, opt);
+                    convdw3x3s2_int8_dequant_sse(bottom_blob_bordered, top_blob, weight_data_tm, bias_data, dequantize_scales, opt);
                 }
 
                 if (activation)
@@ -1132,7 +1157,7 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
                 {
                     signed char* outptr_s8 = top_blob.channel(g);
                     float* outptr_f32 = top_blob.channel(g);
-                    const signed char* kptr = (const signed char*)weight_data + maxk * g;
+                    const signed char* kptr = (const signed char*)weight_data_tm + maxk * g;
                     const Mat m = bottom_blob_bordered.channel(g);
 
                     for (int i = 0; i < outh; i++)
@@ -1227,6 +1252,8 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
         Option opt_p = opt;
         opt_p.blob_allocator = opt.workspace_allocator;
         convert_packing(bottom_blob_bordered, bottom_blob_bordered_unpacked, g_elempack, opt_p);
+        if (bottom_blob_bordered_unpacked.empty())
+            return -100;
     }
 
     Mat top_blob_unpacked = top_blob;
@@ -1237,7 +1264,6 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
             return -100;
     }
 
-    #pragma omp parallel for num_threads(opt.num_threads)
     for (int g = 0; g < group; g++)
     {
         const Mat bottom_blob_bordered_g = bottom_blob_bordered_unpacked.channel_range(channels_g * g / g_elempack, channels_g / g_elempack);
@@ -1246,16 +1272,20 @@ int ConvolutionDepthWise_x86::forward_int8_x86(const Mat& bottom_blob, Mat& top_
         const ncnn::Layer* op = group_ops[g];
 
         Option opt_g = opt;
-        opt_g.blob_allocator = top_blob.allocator;
+        opt_g.blob_allocator = top_blob_unpacked.allocator;
 
         // forward
-        op->forward(bottom_blob_bordered_g, top_blob_g, opt_g);
+        int ret = op->forward(bottom_blob_bordered_g, top_blob_g, opt_g);
+        if (ret != 0)
+            return ret;
     }
 
     // packing
     if (out_g_elempack < out_elempack)
     {
         convert_packing(top_blob_unpacked, top_blob, out_elempack, opt);
+        if (top_blob.empty())
+            return -100;
     }
     else
     {

@@ -19,10 +19,12 @@
 
 namespace ncnn {
 
-class Deconvolution_vulkan : virtual public Deconvolution
+class Deconvolution_vulkan : public Deconvolution
 {
 public:
     Deconvolution_vulkan();
+
+    virtual int load_param(const ParamDict& pd);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
@@ -34,6 +36,9 @@ public:
     virtual int forward(const VkImageMat& bottom_blob, VkImageMat& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
+    Mat weight_data_packed;
+    Mat bias_data_packed;
+
     VkMat weight_data_gpu;
     VkMat bias_data_gpu;
 
