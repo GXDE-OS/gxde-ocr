@@ -1,0 +1,47 @@
+# Maintainer: CharOfString <root@charofstring.cc>
+pkgname=gxde-ocr-git
+pkgver=2.0.1
+pkgrel=1
+pkgdesc='GXDE OCR tool for DTK2'
+arch=('x86_64' 'aarch64')
+url="https://github.com/GXDE-OS/gxde-ocr"
+# 静态链接自带的 OpenCV（Apache-2.0）、ncnn（BSD-3-Clause）与 clipper（BSL-1.0）
+# The bundled OpenCV (Apache-2.0), ncnn (BSD-3-Clause) and clipper (BSL-1.0)
+# are linked in statically.
+license=('GPL-3.0-or-later' 'Apache-2.0' 'BSD-3-Clause' 'BSL-1.0')
+depends=('dtk2widget-qt6-git' 'dtk6core-git' 'qt6-base' 'libgomp' 'hicolor-icon-theme' 'libgcc' 'libstdc++' 'glibc')
+makedepends=('git' 'cmake' 'make' 'pkgconf' 'qt6-tools')
+provides=('gxde-ocr')
+conflicts=('gxde-ocr')
+source=()
+sha512sums=()
+
+# 直接使用 PKGBUILD 所在的 git 仓库作为源码 ・ Build from the git checkout this PKGBUILD lives in.
+_srcroot() {
+  git -C "$startdir" rev-parse --show-toplevel
+}
+
+prepare() {
+  # 配置时 build3rdparty.sh 会给 3rdparty/opencv-4.5.4 打补丁并就地编译 OpenCV 与 ncnn，
+  # 因此在 $srcdir 中的副本里构建，不改动仓库
+  # At configure time build3rdparty.sh patches 3rdparty/opencv-4.5.4 and builds
+  # OpenCV and ncnn in place, so build from a copy in $srcdir and leave the
+  # checkout untouched.
+  rm -rf "$srcdir/$pkgname"
+  mkdir "$srcdir/$pkgname"
+  tar -C "$(_srcroot)" --exclude=./.git -cf - . | tar -C "$srcdir/$pkgname" -xf -
+}
+
+build() {
+  cmake -B build -S "$srcdir/$pkgname" \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr
+  make -C build
+}
+
+package() {
+  make -C build DESTDIR="$pkgdir" install
+  local _3rd="$srcdir/$pkgname/3rdparty"
+  install -Dm644 "$_3rd/opencv-4.5.4/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/OpenCV-LICENSE"
+  install -Dm644 "$_3rd/ncnn/LICENSE.txt" "$pkgdir/usr/share/licenses/$pkgname/ncnn-LICENSE.txt"
+}
