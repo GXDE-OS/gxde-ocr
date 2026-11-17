@@ -1,5 +1,5 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgname=gxde-ocr-git
+pkgname=gxde-ocr
 pkgver=2.0.1
 pkgrel=1
 pkgdesc='GXDE OCR tool for DTK2'
@@ -9,10 +9,11 @@ url="https://github.com/GXDE-OS/gxde-ocr"
 # The bundled OpenCV (Apache-2.0), ncnn (BSD-3-Clause) and clipper (BSL-1.0)
 # are linked in statically.
 license=('GPL-3.0-or-later' 'Apache-2.0' 'BSD-3-Clause' 'BSL-1.0')
-depends=('dtk2widget-qt6-git' 'dtk6core-git' 'qt6-base' 'libgomp' 'hicolor-icon-theme' 'libgcc' 'libstdc++' 'glibc')
+depends=('dtk2widget-qt6' 'gxde-dtk6core' 'qt6-base' 'libgomp' 'hicolor-icon-theme' 'libgcc' 'libstdc++' 'glibc')
 makedepends=('git' 'cmake' 'make' 'pkgconf' 'qt6-tools')
-provides=('gxde-ocr')
-conflicts=('gxde-ocr')
+provides=("gxde-ocr-git=$pkgver")
+conflicts=('gxde-ocr-git')
+replaces=('gxde-ocr-git')
 source=()
 sha512sums=()
 
